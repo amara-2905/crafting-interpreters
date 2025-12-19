@@ -1,2 +1,1 @@
-# crafting_interpreters
-Crafting Interpreters in C#
+# Crafting Interpreters
