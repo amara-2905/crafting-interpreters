@@ -1,8 +1,8 @@
 ﻿// lox.cs
 using System.Text;
-using System.IO;
-
 public class Lox{
+    static bool hadError = false;
+
     public static void Main(string[] args){
         try{
             if (args.Length > 1){
@@ -25,6 +25,9 @@ public class Lox{
         try{
             byte[] bytes = File.ReadAllBytes(Path);
             Run(Encoding.Default.GetString(bytes));
+            if (hadError){
+               Environment.Exit(65); 
+            }
         }
         catch (IOException){
             throw;
@@ -42,6 +45,7 @@ public class Lox{
                     break;
                 }
                 Run(line);
+                hadError = false;
             }
         }
         catch (IOException){
@@ -50,6 +54,19 @@ public class Lox{
     }
 
     private static void Run(string Source){
-        
+        Scanner scanner = new Scanner(Source);
+        List<Token> tokens = scanner.ScanTokens();
+        foreach (Token token in tokens){
+            Console.Write(token);
+        } 
+    }
+
+    public static void Error(int line, string message){
+        Report(line,"",message);
+    }
+
+    private static void Report(int line, string where, string message){
+        Console.Error.WriteLine("[line " + line + "] Error" + where + ": " + message);
+        hadError = true;
     }
 }
