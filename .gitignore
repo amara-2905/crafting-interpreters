@@ -1,3 +1,7 @@
 jlox/obj
 jlox/bin
+tools/bin
+tools/obj
+clox/obj
+clox/bin
 crafting_interpreters.sln
