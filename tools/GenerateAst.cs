@@ -24,15 +24,28 @@ public class GenerateAst{
             writer.WriteLine();
             writer.WriteLine($"abstract class {baseName}");
             writer.WriteLine("{");
+            DefineVisitor(writer,baseName,types);
             foreach (string type in types){
                 string className = type.Split(':')[0].Trim();
                 string fields = type.Split(':')[1].Trim();
                 DefineType(writer, baseName, className, fields);
             }
+            writer.WriteLine();
+            writer.WriteLine("    public abstract R Accept<R>(Visitor<R> visitor);");
             writer.WriteLine("}");
         }
     }
 
+    private static void DefineVisitor(StreamWriter writer, string baseName, List<string> types){
+        writer.WriteLine("    public interface Visitor<R>");
+        writer.WriteLine("{");
+        foreach (string type in types)
+        {
+            string typeName = type.Split(":")[0].Trim();
+            writer.WriteLine("    R Visit" + typeName + baseName + "(" + typeName + " " + baseName.ToLower() + ");");
+        }
+        writer.WriteLine("    }");
+    }
     private static void DefineType(StreamWriter writer,string baseName,string className,string fieldList){
         writer.WriteLine($"    class {className} : {baseName}");
         writer.WriteLine("    {");
@@ -47,6 +60,11 @@ public class GenerateAst{
             string name = field.Split(' ')[1];
             writer.WriteLine($"            this.{name} = {name};");
         }
+        writer.WriteLine("        }");
+        writer.WriteLine();
+        writer.WriteLine("        public override R Accept<R>(Visitor<R> visitor)");
+        writer.WriteLine("        {");
+        writer.WriteLine($"            return visitor.Visit{className}{baseName}(this);");
         writer.WriteLine("        }");
         writer.WriteLine("    }");
         writer.WriteLine();
