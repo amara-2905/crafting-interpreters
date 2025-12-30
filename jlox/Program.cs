@@ -1,4 +1,5 @@
 ﻿// lox.cs
+using System.ComponentModel;
 using System.Text;
 public class Lox{
     static bool hadError = false;
@@ -61,9 +62,10 @@ public class Lox{
     private static void Run(string Source){
         Scanner scanner = new Scanner(Source);
         List<Token> tokens = scanner.ScanTokens();
-        foreach (Token token in tokens){
-            Console.Write(token);
-        } 
+        Parser parser = new Parser(tokens);
+        Expr expression = parser.Parse();
+        if (hadError) return;
+        Console.WriteLine(new AstPrinter().Print(expression));
     }
 
     public static void Error(int line, string message){
@@ -73,5 +75,14 @@ public class Lox{
     private static void Report(int line, string where, string message){
         Console.Error.WriteLine("[line " + line + "] Error" + where + ": " + message);
         hadError = true;
+    }
+
+    public static void Error(Token token, string message){
+        if (token.type == TokenType.EOF){
+            Report(token.line, " at end", message);
+        }
+        else{
+            Report(token.line, " at '" + token.lexeme + "'", message);
+        }
     }
 }

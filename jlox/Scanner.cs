@@ -79,7 +79,7 @@ public class Scanner{
         addToken(type, null);
     }
 
-    private void addToken(TokenType type, object literal){
+    private void addToken(TokenType type, object? literal){
         string text = source.Substring(start,current - start);
         tokens.Add(new Token(type, text, literal, line));
     }

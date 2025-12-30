@@ -1,7 +1,28 @@
 # Crafting Interpreters
+To run this project:
+```bash
+git clone https://github.com/amara-2905 crafting_interpreters.git 
+cd crafting_interpreters
+```
 
 To generate the AST, run the `tools` project and pass the `jlox` folder as the output directory.
 
 ```bash
-dotnet run --project tools -- ../jlox
+cd tools
+dotnet run -- ../jlox
+```
+
+### Running the Tree-Walk Interpreter
+```bash
+cd jlox
+```
+
+**Option A: REPL mode**
+```bash
+dotnet run
+```
+
+**Option B: File mode**
+```bash
+dotnet run -- path/to/file.lox
 ```
