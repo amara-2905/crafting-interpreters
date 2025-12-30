@@ -1,7 +1,7 @@
 # Crafting Interpreters
 To run this project:
 ```bash
-git clone https://github.com/amara-2905 crafting_interpreters.git 
+git clone https://github.com/amara-2905/crafting_interpreters.git 
 cd crafting_interpreters
 ```
 

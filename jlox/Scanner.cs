@@ -106,7 +106,7 @@ public class Scanner{
             return;
         }
         advance();
-        string value = source.Substring(start + 1, current - 1 - start);
+        string value = source.Substring(start + 1, current - start - 2);
         addToken(TokenType.STRING, value);
     }
 

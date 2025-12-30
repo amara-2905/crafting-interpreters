@@ -2,7 +2,9 @@
 using System.ComponentModel;
 using System.Text;
 public class Lox{
+    private static readonly Interpreter interpreter = new Interpreter();
     static bool hadError = false;
+    static bool hadRuntimeError = false;
     public static void Main(string[] args){
         try{
             if (args.Length > 1){
@@ -33,6 +35,9 @@ public class Lox{
             Run(Encoding.Default.GetString(bytes));
             if (hadError){
                Environment.Exit(65); 
+            }
+            if (hadRuntimeError){
+                Environment.Exit(70);
             }
         }
         catch (IOException){
@@ -65,7 +70,7 @@ public class Lox{
         Parser parser = new Parser(tokens);
         Expr expression = parser.Parse();
         if (hadError) return;
-        Console.WriteLine(new AstPrinter().Print(expression));
+        interpreter.Interpret(expression);
     }
 
     public static void Error(int line, string message){
@@ -85,4 +90,9 @@ public class Lox{
             Report(token.line, " at '" + token.lexeme + "'", message);
         }
     }
+
+    public static void RuntimeError(RuntimeError error){
+        Console.Error.WriteLine(error.Message + "\n[line " + error.token.line + "]");
+        hadRuntimeError = true;
+    } 
 }
