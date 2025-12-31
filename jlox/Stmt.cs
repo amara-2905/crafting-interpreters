@@ -4,6 +4,7 @@ public abstract class Stmt{
     public interface Visitor<R>{
         R VisitBlockStmt(Block stmt);
         R VisitExpressionStmt(Expression stmt);
+        R VisitIfStmt(If stmt);
         R VisitPrintStmt(Print stmt);
         R VisitVarStmt(Var stmt);
     }
@@ -28,6 +29,22 @@ public abstract class Stmt{
 
         public override R Accept<R>(Visitor<R> visitor){
             return visitor.VisitExpressionStmt(this);
+        }
+    }
+
+    public class If : Stmt{
+        public readonly Expr Condition;
+        public readonly Stmt thenBranch;
+        public readonly Stmt elseBranch;
+
+        public If(Expr Condition, Stmt thenBranch, Stmt elseBranch){
+            this.Condition = Condition;
+            this.thenBranch = thenBranch;
+            this.elseBranch = elseBranch;
+        }
+
+        public override R Accept<R>(Visitor<R> visitor){
+            return visitor.VisitIfStmt(this);
         }
     }
 

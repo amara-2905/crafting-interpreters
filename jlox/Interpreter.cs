@@ -1,5 +1,3 @@
-using System.Data;
-
 public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
     private Environment environment = new Environment();
     public object VisitLiteralExpr(Expr.Literal expr){
@@ -14,8 +12,7 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return expr.Accept(this);
     }
 
-    private void Execute(Stmt stmt)
-    {
+    private void Execute(Stmt stmt){
         stmt.Accept(this);
     }
 
@@ -32,20 +29,17 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         }
     }
 
-    public object VisitBlockStmt(Stmt.Block stmt)
-    {
+    public object VisitBlockStmt(Stmt.Block stmt){
         ExecuteBlock(stmt.statements,new Environment(environment));
         return null;
     }
 
-    public object VisitExpressionStmt(Stmt.Expression stmt)
-    {
+    public object VisitExpressionStmt(Stmt.Expression stmt){
         Evaluate(stmt.expression);
         return null;
     }
 
-    public object VisitPrintStmt(Stmt.Print stmt)
-    {
+    public object VisitPrintStmt(Stmt.Print stmt){
         object Value = Evaluate(stmt.expression);
         Console.WriteLine(Stringify(Value));
         return null;
@@ -60,8 +54,7 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return null;
     }
 
-    public object VisitAssignExpr(Expr.Assign expr)
-    {
+    public object VisitAssignExpr(Expr.Assign expr){
         object value = Evaluate(expr.value);
         environment.Assign(expr.name,value);
         return value;
@@ -144,29 +137,22 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return Equals(a,b);
     }
 
-    public void Interpret(List<Stmt> statements)
-    {
-        try
-        {
-            foreach (Stmt statement in statements)
-            {
+    public void Interpret(List<Stmt> statements){
+        try{
+            foreach (Stmt statement in statements){
                 Execute(statement);
             }
         }
-        catch (RuntimeError error)
-        {
+        catch (RuntimeError error){
             Lox.RuntimeError(error);
         }
     }
 
-    private string? Stringify(object obj)
-    {
+    private string? Stringify(object obj){
         if (obj == null) return "nil";
-        if (obj is double)
-        {
+        if (obj is double){
             string? text = obj.ToString();
-            if (text.EndsWith(".0"))
-            {
+            if (text.EndsWith(".0")){
                 text = text.Substring(0,text.Length - 2);
             }
             return text;

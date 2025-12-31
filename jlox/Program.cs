@@ -34,7 +34,7 @@ public class Lox{
             byte[] bytes = File.ReadAllBytes(Path);
             Run(Encoding.Default.GetString(bytes));
             if (hadError){
-               System.Environment.Exit(65); 
+                System.Environment.Exit(65); 
             }
             if (hadRuntimeError){
                 System.Environment.Exit(70);

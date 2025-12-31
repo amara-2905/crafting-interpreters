@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using System.Collections.Generic;
+﻿using System.Text;
 
 public class GenerateAst{
     public static void Main(string[] args){
@@ -21,6 +18,7 @@ public class GenerateAst{
         DefineAst(outputDir,"Stmt", new List<string>{
             "Block : List<Stmt> statements",
             "Expression : Expr expression",
+            "If : Expr Condition, Stmt thenBranch, Stmt elseBranch",
             "Print : Expr expression",
             "Var : Token name, Expr Initializer"});
     }
