@@ -1,6 +1,7 @@
 using System.Data;
 
 public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
+    private Environment environment = new Environment();
     public object VisitLiteralExpr(Expr.Literal expr){
         return expr.value;
     }
@@ -18,6 +19,25 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         stmt.Accept(this);
     }
 
+    void ExecuteBlock(List<Stmt> statements, Environment environment){
+        Environment previous = this.environment;
+        try{
+            this.environment = environment;
+            foreach(Stmt statement in statements){
+                Execute(statement);
+            }
+        }
+        finally{
+            this.environment = previous;
+        }
+    }
+
+    public object VisitBlockStmt(Stmt.Block stmt)
+    {
+        ExecuteBlock(stmt.statements,new Environment(environment));
+        return null;
+    }
+
     public object VisitExpressionStmt(Stmt.Expression stmt)
     {
         Evaluate(stmt.expression);
@@ -29,6 +49,26 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         object Value = Evaluate(stmt.expression);
         Console.WriteLine(Stringify(Value));
         return null;
+    }
+
+    public object VisitVarStmt(Stmt.Var stmt){
+        object? value = null;
+        if (stmt.Initializer != null){
+            value = Evaluate(stmt.Initializer);
+        }
+        environment.Define(stmt.name.lexeme,value);
+        return null;
+    }
+
+    public object VisitAssignExpr(Expr.Assign expr)
+    {
+        object value = Evaluate(expr.value);
+        environment.Assign(expr.name,value);
+        return value;
+    }
+
+    public object VisitVariableExpr(Expr.Variable expr){
+        return environment.Get(expr.name);
     }
 
     public object VisitBinaryExpr(Expr.Binary expr){
@@ -119,12 +159,12 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         }
     }
 
-    private string Stringify(object obj)
+    private string? Stringify(object obj)
     {
         if (obj == null) return "nil";
         if (obj is double)
         {
-            string text = obj.ToString();
+            string? text = obj.ToString();
             if (text.EndsWith(".0"))
             {
                 text = text.Substring(0,text.Length - 2);

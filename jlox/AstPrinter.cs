@@ -21,6 +21,16 @@ public class AstPrinter : Expr.Visitor<string>{
         return Parenthesize(expr.op.lexeme, expr.right);
     }    
 
+    public string VisitVariableExpr(Expr.Variable expr)
+    {
+        return expr.name.lexeme;
+    }
+
+    public string VisitAssignExpr(Expr.Assign expr)
+    {
+        return $"(= {expr.name.lexeme} {expr.value.Accept(this)})";
+    }
+
     private string Parenthesize(string name, params Expr[] exprs){
         StringBuilder builder = new StringBuilder();
         builder.Append("(").Append(name);

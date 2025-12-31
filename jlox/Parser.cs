@@ -8,37 +8,79 @@ class Parser{
 
     public List<Stmt> Parse(){
         List<Stmt> statements = new List<Stmt>();
-        while (!IsAtEnd())
-        {
-            statements.Add(Statement());
+        while (!IsAtEnd()){
+            statements.Add(Declaration());
         }
         return statements;
     }
 
     private Expr Expression(){
-        return Equality();
+        return Assignment();
     }
 
-    private Stmt Statement()
-    {
+    private Stmt Declaration(){
+        try{
+            if (Match(TokenType.VAR)) return VarDeclaration();
+            return Statement();
+        }
+        catch (ParseError){
+            Synchronize();
+            return null;
+        }
+    }
+
+    private Stmt Statement(){
         if (Match(TokenType.PRINT)) return PrintStatement();
+        if (Match(TokenType.LEFT_BRACE)) return new Stmt.Block(Block());
         return ExpressionStatement();   
     }
 
-    private Stmt PrintStatement()
-    {
+    private Stmt PrintStatement(){
         Expr Value = Expression();
         Consume(TokenType.SEMICOLON,"Expect ';' after value.");
         return new Stmt.Print(Value);
     }
 
-    private Stmt ExpressionStatement()
-    {
+    private Stmt VarDeclaration(){
+        Token Name = Consume(TokenType.IDENTIFIER,"Expect variable name.");
+        Expr Initializer = null;
+        if (Match(TokenType.EQUAL)){
+            Initializer = Expression();
+        }
+        Consume(TokenType.SEMICOLON,"Expect ';' after variable declaration.");
+        return new Stmt.Var(Name,Initializer);
+    }
+
+    private Stmt ExpressionStatement(){
         Expr expr = Expression();
         Consume(TokenType.SEMICOLON,"Expect ';' after value.");
         return new Stmt.Expression(expr);
     }
-    
+
+    private List<Stmt> Block(){
+        List<Stmt> statements = new List<Stmt>();
+        while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd()){
+            statements.Add(Declaration());
+        }
+        Consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
+    private Expr Assignment(){
+        Expr expr = Equality();
+        if (Match(TokenType.EQUAL)){
+            Token equals = Previous();
+            Expr value = Assignment();
+            
+            if (expr is Expr.Variable){
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name,value);
+            }
+            Error(equals,"Invalid assignment target.");
+        }
+        return expr;
+    }
+
     private Expr Equality(){
         Expr expr = Comparison();
         while (Match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)){
@@ -127,6 +169,9 @@ class Parser{
         if (Match(TokenType.NIL)) return new Expr.Literal(null);
         if (Match(TokenType.NUMBER, TokenType.STRING)){
             return new Expr.Literal(Previous().literal);
+        }
+        if (Match(TokenType.IDENTIFIER)){
+            return new Expr.Variable(Previous());
         }
         if (Match(TokenType.LEFT_PAREN)){
             Expr expr = Expression();

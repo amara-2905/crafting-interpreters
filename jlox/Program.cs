@@ -1,5 +1,4 @@
 ﻿// lox.cs
-using System.ComponentModel;
 using System.Text;
 public class Lox{
     private static readonly Interpreter interpreter = new Interpreter();
@@ -9,7 +8,7 @@ public class Lox{
         try{
             if (args.Length > 1){
                 Console.WriteLine("Usage: jlox [script]");
-                Environment.Exit(64);
+                System.Environment.Exit(64);
             }
             else if (args.Length == 1){
                 RunFile(args[0]);
@@ -22,6 +21,7 @@ public class Lox{
             throw;
         }
     } 
+    
     // To test Ast Code
     // public static void Main(string[] args)
     // {
@@ -34,10 +34,10 @@ public class Lox{
             byte[] bytes = File.ReadAllBytes(Path);
             Run(Encoding.Default.GetString(bytes));
             if (hadError){
-               Environment.Exit(65); 
+               System.Environment.Exit(65); 
             }
             if (hadRuntimeError){
-                Environment.Exit(70);
+                System.Environment.Exit(70);
             }
         }
         catch (IOException){
