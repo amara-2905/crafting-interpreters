@@ -15,6 +15,10 @@ public class GenerateAst{
             "Grouping : Expr expression",
             "Literal  : object value",
             "Unary    : Token op, Expr right"});
+
+        DefineAst(outputDir,"Stmt", new List<string>{
+            "Expression : Expr expression",
+            "Print : Expr expression" });
     }
 
     private static void DefineAst(string outputDir, string baseName, List<string> types){

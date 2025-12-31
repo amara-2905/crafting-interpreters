@@ -68,9 +68,9 @@ public class Lox{
         Scanner scanner = new Scanner(Source);
         List<Token> tokens = scanner.ScanTokens();
         Parser parser = new Parser(tokens);
-        Expr expression = parser.Parse();
+        List<Stmt> Statements = parser.Parse();
         if (hadError) return;
-        interpreter.Interpret(expression);
+        interpreter.Interpret(Statements);
     }
 
     public static void Error(int line, string message){

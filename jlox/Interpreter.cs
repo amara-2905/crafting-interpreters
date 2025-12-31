@@ -1,4 +1,6 @@
-public class Interpreter : Expr.Visitor<object>{
+using System.Data;
+
+public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
     public object VisitLiteralExpr(Expr.Literal expr){
         return expr.value;
     }
@@ -9,6 +11,24 @@ public class Interpreter : Expr.Visitor<object>{
 
     private object Evaluate(Expr expr){
         return expr.Accept(this);
+    }
+
+    private void Execute(Stmt stmt)
+    {
+        stmt.Accept(this);
+    }
+
+    public object VisitExpressionStmt(Stmt.Expression stmt)
+    {
+        Evaluate(stmt.expression);
+        return null;
+    }
+
+    public object VisitPrintStmt(Stmt.Print stmt)
+    {
+        object Value = Evaluate(stmt.expression);
+        Console.WriteLine(Stringify(Value));
+        return null;
     }
 
     public object VisitBinaryExpr(Expr.Binary expr){
@@ -84,12 +104,14 @@ public class Interpreter : Expr.Visitor<object>{
         return Equals(a,b);
     }
 
-    public void Interpret(Expr expression)
+    public void Interpret(List<Stmt> statements)
     {
         try
         {
-            object value = Evaluate(expression);
-            Console.WriteLine(Stringify(value));
+            foreach (Stmt statement in statements)
+            {
+                Execute(statement);
+            }
         }
         catch (RuntimeError error)
         {
