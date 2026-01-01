@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 public class Environment{
     private readonly Dictionary<string,object> Values = new Dictionary<string, object>();
     readonly Environment Enclosing;
@@ -35,5 +33,25 @@ public class Environment{
 
     public void Define(string name, object value){
         Values[name] = value;
+    }
+
+    public object GetAt(int Distance, string name)
+    {
+        return Ancestor(Distance).Values[name];
+    }
+
+    public Environment Ancestor(int Distance)
+    {
+        Environment environment = this; 
+        for (int i = 0; i < Distance; i++)
+        {
+            environment = environment.Enclosing;
+        }
+        return environment;
+    }
+
+    public void AssignAt(int Distance, Token name, object value)
+    {
+        Ancestor(Distance).Values[name.lexeme] = value;
     }
 }

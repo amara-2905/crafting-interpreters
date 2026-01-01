@@ -1,6 +1,7 @@
 public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
     public readonly Environment globals;
     private Environment environment;
+    private readonly Dictionary<Expr,int> locals = new Dictionary<Expr, int>();
 
     public Interpreter()
     {
@@ -32,6 +33,11 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
 
     private void Execute(Stmt stmt){
         stmt.Accept(this);
+    }
+
+    public void Resolve(Expr expr, int depth)
+    {
+        locals[expr] = depth;
     }
 
     public void ExecuteBlock(List<Stmt> statements, Environment environment){
@@ -101,12 +107,27 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
 
     public object VisitAssignExpr(Expr.Assign expr){
         object value = Evaluate(expr.value);
-        environment.Assign(expr.name,value);
+        int Distance = locals[expr];
+        if (Distance != null){
+            environment.AssignAt(Distance,expr.name,value);
+        }
+        else{
+            globals.Assign(expr.name,value);
+        }
         return value;
     }
 
     public object VisitVariableExpr(Expr.Variable expr){
-        return environment.Get(expr.name);
+        return LookupVariable(expr.name, expr);
+    }
+
+    private object LookupVariable(Token name, Expr expr){
+        if (locals.TryGetValue(expr, out int Distance)){
+            return environment.GetAt(Distance, name.lexeme);
+        }
+        else{
+            return globals.Get(name);
+        }
     }
 
     public object VisitBinaryExpr(Expr.Binary expr){

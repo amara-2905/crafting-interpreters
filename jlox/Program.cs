@@ -51,7 +51,7 @@ public class Lox{
             StreamReader reader = new StreamReader(Console.OpenStandardInput());
             for ( ; ; ){
                 Console.Write("> ");
-                string? line = reader.ReadLine();
+                string line = reader.ReadLine();
                 if (line == null){
                     break;
                 }
@@ -69,6 +69,9 @@ public class Lox{
         List<Token> tokens = scanner.ScanTokens();
         Parser parser = new Parser(tokens);
         List<Stmt> Statements = parser.Parse();
+        if (hadError) return;
+        Resolver resolver = new Resolver(interpreter);
+        resolver.Resolve(Statements);
         if (hadError) return;
         interpreter.Interpret(Statements);
     }
