@@ -1,5 +1,12 @@
 public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
-    private Environment environment = new Environment();
+    private readonly Environment globals;
+    private Environment environment;
+
+    public Interpreter()
+    {
+        globals = new Environment();
+        environment = globals;
+    }
     public object VisitLiteralExpr(Expr.Literal expr){
         return expr.value;
     }
@@ -127,6 +134,23 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
             case TokenType.EQUAL_EQUAL: return IsEqual(left,right);
         }
         return null;
+    }
+
+    public object VisitCallExpr(Expr.Call expr)
+    {
+        object callee = Evaluate(expr.callee);
+        List<object> arguments = new List<object>();
+        foreach(Expr argument in arguments){
+            arguments.Add(Evaluate(argument));
+        }
+        if (!(callee is LoxCallable)){
+            throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+        }
+        LoxCallable Function = (LoxCallable)callee;
+        if (arguments.Count() != Function.Arity()){
+            throw new RuntimeError(expr.paren, "Expected " + Function.Arity() + " arguments but got " + arguments.Count() + ".");
+        }
+        return Function.Call(this,arguments);
     }
 
     public object VisitUnaryExpr(Expr.Unary expr){
