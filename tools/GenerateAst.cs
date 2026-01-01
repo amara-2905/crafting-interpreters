@@ -20,8 +20,10 @@ public class GenerateAst{
         DefineAst(outputDir,"Stmt", new List<string>{
             "Block : List<Stmt> statements",
             "Expression : Expr expression",
+            "Function : Token name, List<Token> parameters, List<Stmt> body",
             "If : Expr Condition, Stmt thenBranch, Stmt elseBranch",
             "Print : Expr expression",
+            "Return : Token Keyword, Expr value",
             "Var : Token name, Expr Initializer",
             "While : Expr condition, Stmt body"});
     }

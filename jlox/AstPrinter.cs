@@ -1,6 +1,18 @@
 using System.Text;
 
 public class AstPrinter : Expr.Visitor<string>{
+    public string VisitCallExpr(Expr.Call expr){
+        var builder = new StringBuilder();
+        builder.Append("(call ");
+        builder.Append(expr.callee.Accept(this));
+        foreach (var argument in expr.arguments){
+            builder.Append(" ");
+            builder.Append(argument.Accept(this));
+        }
+        builder.Append(")");
+        return builder.ToString();
+    }
+
     public string Print(Expr expr){
         return expr.Accept(this);
     }

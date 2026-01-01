@@ -1,11 +1,12 @@
 public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
-    private readonly Environment globals;
+    public readonly Environment globals;
     private Environment environment;
 
     public Interpreter()
     {
         globals = new Environment();
         environment = globals;
+        globals.Define("clock", new NativeFunction(0,(interpreter, arguments) => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0));
     }
     public object VisitLiteralExpr(Expr.Literal expr){
         return expr.value;
@@ -33,7 +34,7 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         stmt.Accept(this);
     }
 
-    void ExecuteBlock(List<Stmt> statements, Environment environment){
+    public void ExecuteBlock(List<Stmt> statements, Environment environment){
         Environment previous = this.environment;
         try{
             this.environment = environment;
@@ -56,6 +57,12 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return null;
     }
 
+    public object VisitFunctionStmt(Stmt.Function stmt){
+        LoxFunction function = new LoxFunction(stmt,environment);
+        environment.Define(stmt.name.lexeme, function);
+        return null;
+    }
+
     public object VisitIfStmt(Stmt.If stmt){
         if (IsTruthy(Evaluate(stmt.Condition))){
             Execute(stmt.thenBranch);
@@ -71,6 +78,11 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return null;
     }
 
+    public object VisitReturnStmt(Stmt.Return stmt){
+        object value = null; 
+        if (stmt.value != null) value = Evaluate(stmt.value);
+        throw new Return(value);
+    }
     public object VisitVarStmt(Stmt.Var stmt){
         object value = null;
         if (stmt.Initializer != null){
@@ -140,7 +152,7 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
     {
         object callee = Evaluate(expr.callee);
         List<object> arguments = new List<object>();
-        foreach(Expr argument in arguments){
+        foreach(Expr argument in expr.arguments){
             arguments.Add(Evaluate(argument));
         }
         if (!(callee is LoxCallable)){
@@ -198,10 +210,10 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         }
     }
 
-    private string? Stringify(object obj){
+    private string Stringify(object obj){
         if (obj == null) return "nil";
         if (obj is double){
-            string? text = obj.ToString();
+            string text = obj.ToString();
             if (text.EndsWith(".0")){
                 text = text.Substring(0,text.Length - 2);
             }
