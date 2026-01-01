@@ -23,6 +23,20 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return Evaluate(expr.right);
     }
 
+    public object VisitSetExpr(Expr.Set expr){
+        object obj = Evaluate(expr.obj);
+        if (!(obj is LoxInstance)){
+            throw new RuntimeError(expr.name,"Only instances have fields.");
+        }
+        object value = Evaluate(expr.value);
+        ((LoxInstance)obj).Set(expr.name,value);
+        return value;
+    }
+
+    public object VisitThisExpr(Expr.This expr){
+        return LookupVariable(expr.keyword, expr);
+    }
+
     public object VisitGroupingExpr(Expr.Grouping expr){
         return Evaluate(expr.expression);
     }
@@ -55,6 +69,18 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
 
     public object VisitBlockStmt(Stmt.Block stmt){
         ExecuteBlock(stmt.statements,new Environment(environment));
+        return null;
+    }
+
+    public object VisitClassStmt(Stmt.Class stmt){
+        environment.Define(stmt.name.lexeme,null);
+        Dictionary<string,LoxFunction> methods = new Dictionary<string, LoxFunction>();
+        foreach (Stmt.Function method in stmt.methods){
+            LoxFunction function = new LoxFunction(method,environment);
+            methods[method.name.lexeme] = function;
+        }
+        LoxClass Class = new LoxClass(stmt.name.lexeme,methods);
+        environment.Assign(stmt.name,Class);
         return null;
     }
 
@@ -186,6 +212,13 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return Function.Call(this,arguments);
     }
 
+    public object VisitGetExpr(Expr.Get expr){
+        object obj = Evaluate(expr.obj);
+        if (obj is LoxInstance){
+            return ((LoxInstance)obj).Get(expr.name);
+        }
+        throw new RuntimeError(expr.name,"Only instances have properties.");
+    }
     public object VisitUnaryExpr(Expr.Unary expr){
         object right = Evaluate(expr.right);
         switch (expr.op.type){

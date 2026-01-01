@@ -7,7 +7,7 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
         this.interpreter = interpreter;
     }
 
-    private enum FunctionType{NONE, FUNCTION}
+    private enum FunctionType{NONE, FUNCTION, METHOD}
 
     public void Resolve(List<Stmt> statements){
         foreach(Stmt statement in statements){
@@ -18,6 +18,20 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
     public object VisitBlockStmt(Stmt.Block stmt){
         BeginScope();
         Resolve(stmt.statements);
+        EndScope();
+        return null;
+    }
+
+    public object VisitClassStmt(Stmt.Class stmt){
+        Declare(stmt.name);
+        Define(stmt.name);
+        BeginScope();
+        scopes.Peek()["this"] = true;
+        foreach (Stmt.Function method in stmt.methods)
+        {
+            FunctionType Declaration = FunctionType.METHOD;
+            ResolveFunction(method,Declaration);
+        }
         EndScope();
         return null;
     }
@@ -62,10 +76,8 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
         scopes.Peek()[name.lexeme] = true;
     }
 
-    public object VisitVariableExpr(Expr.Variable expr)
-    {
-        if (!(scopes.Count() == 0) && scopes.Peek().ContainsKey(expr.name.lexeme) && scopes.Peek()[expr.name.lexeme] == false)
-        {
+    public object VisitVariableExpr(Expr.Variable expr){
+        if (!(scopes.Count() == 0) && scopes.Peek().ContainsKey(expr.name.lexeme) && scopes.Peek()[expr.name.lexeme] == false){
             Lox.Error(expr.name,"Can't read local variable in its own initializer.");
         }
         ResolveLocal(expr,expr.name);
@@ -83,35 +95,30 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
         }
     }
 
-    public object VisitAssignExpr(Expr.Assign expr)
-    {
+    public object VisitAssignExpr(Expr.Assign expr){
         Resolve(expr.value);
         ResolveLocal(expr,expr.name);
         return null;
     }
 
-    public object VisitBinaryExpr(Expr.Binary expr)
-    {
+    public object VisitBinaryExpr(Expr.Binary expr){
         Resolve(expr.left);
         Resolve(expr.right);
         return null;
     }
 
-    public object VisitFunctionStmt(Stmt.Function stmt)
-    {
+    public object VisitFunctionStmt(Stmt.Function stmt){
         Declare(stmt.name);
         Define(stmt.name);
         ResolveFunction(stmt, FunctionType.FUNCTION);
         return null;
     }
 
-    private void ResolveFunction(Stmt.Function function, FunctionType type)
-    {
+    private void ResolveFunction(Stmt.Function function, FunctionType type){
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
         BeginScope();
-        foreach( Token param in function.parameters)
-        {
+        foreach( Token param in function.parameters){
             Declare(param);
             Define(param);
         }
@@ -120,76 +127,78 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
         currentFunction = enclosingFunction;
     }
 
-    public object VisitExpressionStmt(Stmt.Expression stmt)
-    {
+    public object VisitExpressionStmt(Stmt.Expression stmt){
         Resolve(stmt.expression);
         return null;
     }
 
-    public object VisitIfStmt(Stmt.If stmt)
-    {
+    public object VisitIfStmt(Stmt.If stmt){
         Resolve(stmt.Condition);
         Resolve(stmt.thenBranch);
         if (stmt.elseBranch != null) Resolve(stmt.elseBranch);
         return null;
     }
 
-    public object VisitPrintStmt(Stmt.Print stmt)
-    {
+    public object VisitPrintStmt(Stmt.Print stmt){
         Resolve(stmt.expression);
         return null;
     }
 
-    public object VisitReturnStmt(Stmt.Return stmt)
-    {
-        if (currentFunction == FunctionType.NONE)
-        {
+    public object VisitReturnStmt(Stmt.Return stmt){
+        if (currentFunction == FunctionType.NONE){
             Lox.Error(stmt.Keyword, "Can't return from top-level code.");
         }
-        if (stmt.value != null)
-        {
+        if (stmt.value != null){
             Resolve(stmt.value);
         }
         return null;
     }
 
-    public object VisitWhileStmt(Stmt.While stmt)
-    {
+    public object VisitWhileStmt(Stmt.While stmt){
         Resolve(stmt.condition);
         Resolve(stmt.body);
         return null;
     }
 
-    public object VisitCallExpr(Expr.Call expr)
-    {
+    public object VisitCallExpr(Expr.Call expr){
         Resolve(expr.callee);
-        foreach(Expr argument in expr.arguments)
-        {
+        foreach(Expr argument in expr.arguments){
             Resolve(argument);
         }
         return null;
     }
 
-    public object VisitGroupingExpr(Expr.Grouping expr)
-    {
+    public object VisitGetExpr(Expr.Get expr){
+        Resolve(expr.obj);
+        return null;
+    }
+    public object VisitGroupingExpr(Expr.Grouping expr){
         Resolve(expr.expression);
         return null;
     }
 
-    public object VisitLiteralExpr(Expr.Literal expr)
-    {
+    public object VisitLiteralExpr(Expr.Literal expr){
         return null;
     }
 
-    public object VisitLogicalExpr(Expr.Logical expr)
-    {
+    public object VisitLogicalExpr(Expr.Logical expr){
         Resolve(expr.left);
         Resolve(expr.right);
         return null;
     }
 
-    public object VisitUnaryExpr(Expr.Unary expr)
-    {
+    public object VisitSetExpr(Expr.Set expr){
+        Resolve(expr.value);
+        Resolve(expr.obj);
+        return null;
+    }
+
+    public object VisitThisExpr(Expr.This expr){
+        ResolveLocal(expr,expr.keyword);
+        return null;
+    }
+
+    public object VisitUnaryExpr(Expr.Unary expr){
         Resolve(expr.right);
         return null;
     }

@@ -1,3 +1,6 @@
+using System.Net.Http.Headers;
+using System.Reflection;
+
 public class LoxFunction : LoxCallable{
     private readonly Stmt.Function Declaration;
     private readonly Environment Closure;
@@ -6,6 +9,11 @@ public class LoxFunction : LoxCallable{
         this.Closure = Closure;
     }
 
+    public LoxFunction Bind(LoxInstance instance){
+        Environment environment = new Environment(Closure);
+        environment.Define("this",instance);
+        return new LoxFunction(Declaration,environment);
+    }
     public object Call(Interpreter interpreter, List<object> arguments){
         Environment environment = new Environment(Closure);
         for (int i = 0; i < Declaration.parameters.Count(); i++){
