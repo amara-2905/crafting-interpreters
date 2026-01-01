@@ -12,6 +12,7 @@ public class GenerateAst{
             "Binary   : Expr left, Token op, Expr right",
             "Grouping : Expr expression",
             "Literal  : object value",
+            "Logical  : Expr left, Token op, Expr right",
             "Unary    : Token op, Expr right",
             "Variable : Token name"});
 
@@ -20,7 +21,8 @@ public class GenerateAst{
             "Expression : Expr expression",
             "If : Expr Condition, Stmt thenBranch, Stmt elseBranch",
             "Print : Expr expression",
-            "Var : Token name, Expr Initializer"});
+            "Var : Token name, Expr Initializer",
+            "While : Expr condition, Stmt body"});
     }
 
     private static void DefineAst(string outputDir, string baseName, List<string> types){

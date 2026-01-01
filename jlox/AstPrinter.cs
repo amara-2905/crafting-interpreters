@@ -4,6 +4,9 @@ public class AstPrinter : Expr.Visitor<string>{
     public string Print(Expr expr){
         return expr.Accept(this);
     }
+    public string VisitLogicalExpr(Expr.Logical expr){
+        return Parenthesize(expr.op.lexeme, expr.left, expr.right);
+    }
 
     public string VisitBinaryExpr(Expr.Binary expr){
         return Parenthesize(expr.op.lexeme, expr.left, expr.right);
