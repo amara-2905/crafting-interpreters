@@ -33,6 +33,17 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
         return value;
     }
 
+    public object VisitSuperExpr(Expr.Super expr){
+        int Distance = locals[expr];
+        LoxClass superclass = (LoxClass)environment.GetAt(Distance,"super");
+        LoxInstance obj = (LoxInstance)environment.GetAt(Distance -1,"this");
+        LoxFunction method = superclass.FindMethod(expr.method.lexeme);
+        if (method == null){
+            throw new RuntimeError(expr.method, "Undefined property '" + expr.method.lexeme + "'.");
+        }
+        return method.Bind(obj);
+    }
+
     public object VisitThisExpr(Expr.This expr){
         return LookupVariable(expr.keyword, expr);
     }
@@ -73,13 +84,27 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
     }
 
     public object VisitClassStmt(Stmt.Class stmt){
+        object superclass = null;
+        if (stmt.SuperClass != null){
+            superclass = Evaluate(stmt.SuperClass);
+            if (!(superclass is LoxClass)){
+                throw new RuntimeError(stmt.SuperClass.name,"Superclass must be a class.");
+            }
+        }
         environment.Define(stmt.name.lexeme,null);
+        if(stmt.SuperClass != null){
+            environment = new Environment(environment);
+            environment.Define("super",superclass);
+        }
         Dictionary<string,LoxFunction> methods = new Dictionary<string, LoxFunction>();
         foreach (Stmt.Function method in stmt.methods){
-            LoxFunction function = new LoxFunction(method,environment);
+            LoxFunction function = new LoxFunction(method,environment, method.name.lexeme.Equals("init"));
             methods[method.name.lexeme] = function;
         }
-        LoxClass Class = new LoxClass(stmt.name.lexeme,methods);
+        LoxClass Class = new LoxClass(stmt.name.lexeme,(LoxClass)superclass,methods);
+        if (superclass != null){
+            environment = environment.Enclosing;
+        }
         environment.Assign(stmt.name,Class);
         return null;
     }
@@ -90,7 +115,7 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>{
     }
 
     public object VisitFunctionStmt(Stmt.Function stmt){
-        LoxFunction function = new LoxFunction(stmt,environment);
+        LoxFunction function = new LoxFunction(stmt,environment,false);
         environment.Define(stmt.name.lexeme, function);
         return null;
     }

@@ -3,11 +3,13 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
     private readonly Stack<Dictionary<string,bool>> scopes = new Stack<Dictionary<string, bool>>();
     
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType CurrentClass = ClassType.NONE;
     public Resolver(Interpreter interpreter){
         this.interpreter = interpreter;
     }
 
-    private enum FunctionType{NONE, FUNCTION, METHOD}
+    private enum FunctionType{NONE, FUNCTION, INITIALIZER, METHOD}
+    private enum ClassType{NONE, CLASS, SUBCLASS}
 
     public void Resolve(List<Stmt> statements){
         foreach(Stmt statement in statements){
@@ -23,16 +25,34 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
     }
 
     public object VisitClassStmt(Stmt.Class stmt){
+        ClassType EnclosingClass = CurrentClass;
+        CurrentClass = ClassType.CLASS;
         Declare(stmt.name);
         Define(stmt.name);
+        if (stmt.SuperClass != null && stmt.name.lexeme.Equals(stmt.SuperClass.name.lexeme)){
+            Lox.Error(stmt.SuperClass.name,"A class can't inherit from itself.");
+        }
+        if (stmt.SuperClass != null){
+            CurrentClass = ClassType.SUBCLASS;
+            Resolve(stmt.SuperClass);
+        }
+        if(stmt.SuperClass != null){
+            BeginScope();
+            scopes.Peek()["super"] = true;
+        }
         BeginScope();
         scopes.Peek()["this"] = true;
         foreach (Stmt.Function method in stmt.methods)
         {
             FunctionType Declaration = FunctionType.METHOD;
+            if (method.name.lexeme.Equals("init")){
+                Declaration = FunctionType.INITIALIZER;
+            }
             ResolveFunction(method,Declaration);
         }
         EndScope();
+        if (stmt.SuperClass != null) EndScope();
+        CurrentClass = EnclosingClass;
         return null;
     }
 
@@ -149,6 +169,9 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
             Lox.Error(stmt.Keyword, "Can't return from top-level code.");
         }
         if (stmt.value != null){
+            if (currentFunction == FunctionType.INITIALIZER){
+                Lox.Error(stmt.Keyword,"Can't return a value from an initializer.");
+            }
             Resolve(stmt.value);
         }
         return null;
@@ -193,7 +216,20 @@ public class Resolver : Expr.Visitor<object>, Stmt.Visitor<object>{
         return null;
     }
 
+    public object VisitSuperExpr(Expr.Super expr){
+        if (CurrentClass == ClassType.NONE){
+            Lox.Error(expr.keyword,"Can't use 'super' outside of a class.");
+        } else if (CurrentClass != ClassType.SUBCLASS){
+            Lox.Error(expr.keyword,"Can't use 'super' in a class with no superclass.");
+        }
+        ResolveLocal(expr,expr.keyword);
+        return null;
+    }
+
     public object VisitThisExpr(Expr.This expr){
+        if (CurrentClass == ClassType.NONE){
+            Lox.Error(expr.keyword,"Can't use 'this' outside of a class.");
+        }
         ResolveLocal(expr,expr.keyword);
         return null;
     }

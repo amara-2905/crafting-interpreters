@@ -1,6 +1,6 @@
 public class Environment{
     private readonly Dictionary<string,object> Values = new Dictionary<string, object>();
-    readonly Environment Enclosing;
+    public readonly Environment Enclosing;
 
     public Environment()
     {

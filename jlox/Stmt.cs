@@ -26,10 +26,12 @@ public abstract class Stmt{
 
     public class Class : Stmt{
         public readonly Token name;
+        public readonly Expr.Variable SuperClass;
         public readonly List<Stmt.Function> methods;
 
-        public Class(Token name, List<Stmt.Function> methods){
+        public Class(Token name, Expr.Variable SuperClass, List<Stmt.Function> methods){
             this.name = name;
+            this.SuperClass = SuperClass;
             this.methods = methods;
         }
 

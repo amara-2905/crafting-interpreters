@@ -56,4 +56,19 @@ public class AstPrinter : Expr.Visitor<string>{
         builder.Append(")");
         return builder.ToString();
     }
+    public string VisitGetExpr(Expr.Get expr){
+        return Parenthesize("get " + expr.name.lexeme,expr.obj);
+    }
+
+    public string VisitSetExpr(Expr.Set expr){
+        return Parenthesize("set " + expr.name.lexeme,expr.obj,expr.value);
+    }
+
+    public string VisitThisExpr(Expr.This expr){
+        return "this";
+    }
+    public string VisitSuperExpr(Expr.Super expr){
+        return "(super " + expr.method.lexeme + ")";
+    }
+
 }
