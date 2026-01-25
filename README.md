@@ -12,9 +12,9 @@ cd tools
 dotnet run -- ../jlox
 ```
 
-### Running the Tree-Walk Interpreter
+### Running the Tree-Walk Interpreter / Bytecode VM
 ```bash
-cd jlox
+cd jlox or clox
 ```
 
 **Option A: REPL mode**
