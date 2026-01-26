@@ -1,17 +1,14 @@
 ﻿class Lox
 {
-    public static void Main()
+    public static void Main(string[] args)
     {
         Chunk chunk = new Chunk(0, 0, null);
         chunk.InitChunk(chunk);
-        chunk.WriteChunk(chunk, 42);
-        chunk.WriteChunk(chunk, 43);
-        chunk.WriteChunk(chunk, 44);
-        Console.WriteLine("Count: " + chunk.Count);
-        Console.WriteLine("Capacity: " + chunk.Capacity);
-        for (int i = 0; i < chunk.Count; i++)
-        {
-            Console.WriteLine("Code[" + i + "] = " + chunk.Code[i]);
-        }
+        int Constant = chunk.AddConstant(chunk,1.2);
+        chunk.WriteChunk(chunk,(byte)OpCode.OP_CONSTANT,123);
+        chunk.WriteChunk(chunk,(byte)Constant,123);
+        chunk.WriteChunk(chunk, (byte)OpCode.OP_RETURN,123);
+        Debug.DisassembleChunk(chunk,"test chunk");
+        chunk.FreeChunk(chunk);
     }
 }
