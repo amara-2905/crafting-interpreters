@@ -110,10 +110,11 @@ public class VirtualMachine{
         }
     }
 
-    public static InterpretResult Interpret(Chunk chunk){
-        vm.chunk = chunk;
-        vm.ip = 0;
-        return Run();
+    public static InterpretResult Interpret(string source)
+    {
+        Compiler.Compile(source);
+        return InterpretResult.INTERPRET_OK;
     }
+
 
 }
