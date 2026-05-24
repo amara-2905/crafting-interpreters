@@ -1,4 +1,4 @@
-public static class Debug{
+public static class Debug{   
     public static void DisassembleChunk(Chunk chunk, string name){
         Console.WriteLine("== " + name + " ==");
         for (int offset = 0; offset < chunk.Count;){
@@ -49,4 +49,10 @@ public static class Debug{
         return offset + 1;
     }
 
+}
+
+public static class DebugSettings
+{
+    public const bool DEBUG_PRINT_CODE = true;
+    public const bool DEBUG_TRACE_EXECUTION = true;
 }

@@ -75,7 +75,7 @@ public class VirtualMachine{
                 for (int i = 0; i < vm.stackTop; i++)
                 {
                     Console.Write("[ ");
-                    ValueArray.PrintValue(i);
+                    ValueArray.PrintValue(vm.stack[i]);
                     Console.Write(" ]");
                 }
                 Console.WriteLine();
@@ -84,7 +84,8 @@ public class VirtualMachine{
             byte instruction = vm.chunk.Code![vm.ip++];
             switch ((OpCode)instruction){
                 case OpCode.OP_CONSTANT:
-                    Value Constant = vm.chunk.Constants.Values[vm.ip++];
+                byte constantIndex = vm.chunk.Code[vm.ip++];
+                Value Constant = vm.chunk.Constants.Values[constantIndex];
                     Push(Constant);
                     break;
                 case OpCode.OP_RETURN:
@@ -110,11 +111,17 @@ public class VirtualMachine{
         }
     }
 
-    public static InterpretResult Interpret(string source)
-    {
-        Compiler.Compile(source);
-        return InterpretResult.INTERPRET_OK;
+    public static InterpretResult Interpret(string source){
+        Chunk chunk = new Chunk();
+        Chunk.InitChunk(chunk);
+        if (!Compiler.Compile(source, chunk)){
+            Chunk.FreeChunk(chunk);
+            return InterpretResult.INTERPRET_COMPILE_ERROR;
+        }
+        vm.chunk = chunk;
+        vm.ip = 0;
+        InterpretResult result = Run();
+        Chunk.FreeChunk(chunk);
+        return result;
     }
-
-
 }

@@ -19,7 +19,9 @@ public class Chunk{
         this.Code = Code;   
     }
 
-    public void InitChunk(Chunk chunk){
+    public Chunk(){}
+
+    public static void InitChunk(Chunk chunk){
         chunk.Capacity = 0;
         chunk.Count = 0;
         chunk.Code = null;
@@ -28,7 +30,7 @@ public class Chunk{
         ValueArray.InitValueArray(chunk.Constants);
     }
 
-    public void WriteChunk(Chunk chunk, byte value, int Line){
+    public static void WriteChunk(Chunk chunk, byte value, int Line){
         if (chunk.Capacity < chunk.Count + 1){
             int OldCapacity = chunk.Capacity;
             chunk.Capacity = Memory.GrowCapacity(OldCapacity);
@@ -40,12 +42,12 @@ public class Chunk{
         chunk.Count++;
     }
 
-    public int AddConstant(Chunk chunk, Value value){
+    public static int AddConstant(Chunk chunk, Value value){
         ValueArray.WriteValueArray(chunk.Constants,value);
         return chunk.Constants.Count - 1;
     }
 
-    public void FreeChunk(Chunk chunk){
+    public static void FreeChunk(Chunk chunk){
         Memory.FreeArray(ref chunk.Code);
         Memory.FreeArray(ref chunk.Lines);
         ValueArray.FreeValueArray(chunk.Constants);
